@@ -1,0 +1,14 @@
+{
+  "name": "gatherly",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gatherly - Event Management & RSVP System (Flask + SQLite, run via npm)",
+  "scripts": {
+    "setup": "node scripts/run.js setup",
+    "dev": "node scripts/run.js dev",
+    "start": "node scripts/run.js dev",
+    "seed": "node scripts/run.js seed",
+    "test": "node scripts/run.js test"
+  },
+  "engines": { "node": ">=16" }
+}

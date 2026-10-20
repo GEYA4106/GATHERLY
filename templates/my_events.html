@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from "_macros.html" import event_card %}
+{% block title %}My events{% endblock %}
+{% block content %}
+<h1>My events</h1>
+
+<h2>I'm attending <small class="muted">({{ attending|length }})</small></h2>
+{% if attending %}
+  <div class="grid">
+    {% for ev in attending %}{{ event_card(ev, mine[ev.id].status) }}{% endfor %}
+  </div>
+{% else %}
+  <div class="empty"><p>You haven't responded to any events yet.</p><a class="btn" href="{{ url_for('index') }}">Browse events</a></div>
+{% endif %}
+
+<h2>I'm hosting <small class="muted">({{ hosting|length }})</small></h2>
+{% if hosting %}
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Event</th><th>When</th><th>Going</th><th>Maybe</th><th>Checked in</th><th></th></tr></thead>
+    <tbody>
+    {% for ev in hosting %}
+      <tr>
+        <td data-label="Event"><a href="{{ url_for('event_detail', eid=ev.id) }}">{{ ev.title }}</a></td>
+        <td data-label="When">{{ ev.date|fdate }}, {{ ev.time|ftime }}</td>
+        <td data-label="Going">{{ ev.going }}</td>
+        <td data-label="Maybe">{{ ev.maybe }}</td>
+        <td data-label="Checked in">{{ ev.checked_in }}</td>
+        <td class="row-actions"><a class="btn btn-sm" href="{{ url_for('guests', eid=ev.id) }}">Guests</a>
+            <a class="btn btn-sm ghost" href="{{ url_for('event_edit', eid=ev.id) }}">Edit</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+{% else %}
+  <div class="empty"><p>You haven't created any events.</p><a class="btn" href="{{ url_for('event_new') }}">Create an event</a></div>
+{% endif %}
+{% endblock %}

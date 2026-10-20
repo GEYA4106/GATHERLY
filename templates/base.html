@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Gatherly{% endblock %} · Gatherly</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="container nav">
+    <a class="brand" href="{{ url_for('index') }}"><span class="logo">✦</span> Gatherly</a>
+    <button class="burger" id="burger" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    <nav id="menu" class="menu">
+      <a href="{{ url_for('index') }}">Events</a>
+      {% if me %}
+        <a href="{{ url_for('my_events') }}">My Events</a>
+        <a href="{{ url_for('event_new') }}">+ Create</a>
+        {% if me.role == 'admin' %}<a href="{{ url_for('admin_dashboard') }}">Admin</a>{% endif %}
+        <a href="{{ url_for('notifications') }}" class="bell">Alerts{% if unread_count %}<span class="badge">{{ unread_count }}</span>{% endif %}</a>
+        <a href="{{ url_for('profile') }}">{{ me.name.split()[0] }}</a>
+        <form method="post" action="{{ url_for('logout') }}" class="inline">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="linkbtn" type="submit">Log out</button>
+        </form>
+      {% else %}
+        <a href="{{ url_for('login') }}">Log in</a>
+        <a class="btn btn-sm" href="{{ url_for('register') }}">Sign up</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flashes">
+        {% for cat, msg in messages %}<div class="flash {{ cat }}" role="alert">{{ msg }}</div>{% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer"><div class="container">© Gatherly · Plan events. Collect RSVPs. Welcome guests.</div></footer>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

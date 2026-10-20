@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_pill %}
+{% block title %}Guests · {{ ev.title }}{% endblock %}
+{% block content %}
+<p class="crumb"><a href="{{ url_for('event_detail', eid=ev.id) }}">← {{ ev.title }}</a></p>
+<h1>Guest list</h1>
+<p class="muted">{{ ev.date|fdate }} · {{ ev.time|ftime }} · {{ ev.venue }}</p>
+
+<div class="stats small">
+  <div class="stat"><b>{{ ev.going }}</b><span>Going</span></div>
+  <div class="stat"><b>{{ ev.maybe }}</b><span>Maybe</span></div>
+  <div class="stat"><b>{{ ev.not_going }}</b><span>Not going</span></div>
+  <div class="stat"><b>{{ ev.seats }}{% if ev.capacity %}/{{ ev.capacity }}{% endif %}</b><span>Seats (with +1s)</span></div>
+  <div class="stat"><b>{{ ev.checked_in }}</b><span>Checked in</span></div>
+</div>
+
+<div class="toolbar">
+  <div class="tabs">
+    <a class="{{ 'active' if not status }}" href="{{ url_for('guests', eid=ev.id) }}">All</a>
+    {% for k, label in STATUSES.items() %}
+      <a class="{{ 'active' if status == k }}" href="{{ url_for('guests', eid=ev.id, status=k) }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+  <a class="btn ghost btn-sm" href="{{ url_for('guests_csv', eid=ev.id) }}">⬇ Export CSV</a>
+</div>
+
+{% if rows %}
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Guest</th><th>Contact</th><th>RSVP</th><th>+Guests</th><th>Responded</th><th>Check-in</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td data-label="Guest"><b>{{ r.name }}</b></td>
+      <td data-label="Contact">{{ r.email }}{% if r.phone %}<br><small class="muted">{{ r.phone }}</small>{% endif %}</td>
+      <td data-label="RSVP">{{ status_pill(r.status) }}</td>
+      <td data-label="+Guests">{{ r.guests }}</td>
+      <td data-label="Responded"><small>{{ r.updated_at|fstamp }}</small></td>
+      <td>
+        <form method="post" action="{{ url_for('checkin', eid=ev.id, uid=r.user_id) }}">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <input type="hidden" name="back" value="{{ request.full_path.rstrip('?') }}">
+          <button class="btn btn-sm {{ 'going' if r.attended else 'ghost' }}" type="submit">{{ '✓ Checked in' if r.attended else 'Check in' }}</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+  <div class="empty"><p>No responses yet.</p></div>
+{% endif %}
+
+<div class="card pad narrow" style="margin-top:1.5rem">
+  <h3>Notify guests</h3>
+  <p class="muted small">Sends an in-app alert (and email if SMTP is configured) to everyone who is Going or Maybe.</p>
+  <form method="post" action="{{ url_for('announce', eid=ev.id) }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="kind" value="announcement">
+    <label>Custom message<textarea name="message" rows="3" maxlength="500" placeholder="E.g. Doors open at 6 PM. Parking is behind the hall."></textarea></label>
+    <button class="btn" type="submit">Send message</button>
+  </form>
+  <form method="post" action="{{ url_for('announce', eid=ev.id) }}" style="margin-top:.6rem">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="kind" value="reminder">
+    <button class="btn ghost" type="submit">Send reminder now</button>
+  </form>
+</div>
+{% endblock %}

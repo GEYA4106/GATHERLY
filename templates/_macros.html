@@ -1,0 +1,30 @@
+{% macro poster(ev, cls='') %}
+  {% if ev.poster %}
+    <img class="poster {{ cls }}" src="{{ url_for('uploads', filename=ev.poster) }}" alt="Poster for {{ ev.title }}" loading="lazy">
+  {% else %}
+    <div class="poster placeholder {{ cls }}" aria-hidden="true"><span>{{ ev.title[:1]|upper }}</span></div>
+  {% endif %}
+{% endmacro %}
+
+{% macro status_pill(status) %}
+  {% if status %}<span class="pill {{ status }}">{{ STATUSES[status] }}</span>{% endif %}
+{% endmacro %}
+
+{% macro event_card(ev, my_status=None) %}
+<article class="card event-card">
+  <a class="poster-wrap" href="{{ url_for('event_detail', eid=ev.id) }}">
+    {{ poster(ev) }}
+    <div class="datebox"><b>{{ ev.date|fday }}</b><small>{{ ev.date|fmon }}</small></div>
+  </a>
+  <div class="card-body">
+    <h3><a href="{{ url_for('event_detail', eid=ev.id) }}">{{ ev.title }}</a></h3>
+    <p class="meta">🕒 {{ ev.time|ftime }} &nbsp;·&nbsp; 📍 {{ ev.venue }}</p>
+    <div class="counts">
+      <span class="pill going">{{ ev.going }} going</span>
+      <span class="pill maybe">{{ ev.maybe }} maybe</span>
+      {% if ev.capacity %}<span class="pill neutral">{{ ev.seats }}/{{ ev.capacity }} seats</span>{% endif %}
+      {{ status_pill(my_status) }}
+    </div>
+  </div>
+</article>
+{% endmacro %}

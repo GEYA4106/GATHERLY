@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Create event' if mode == 'new' else 'Edit event' }}{% endblock %}
+{% block content %}
+<h1>{{ 'Create an event' if mode == 'new' else 'Edit event' }}</h1>
+<div class="card pad narrow">
+  <form method="post" enctype="multipart/form-data" novalidate>
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label>Event name<input name="title" value="{{ ev.get('title','') }}" required maxlength="120"></label>
+    <div class="two">
+      <label>Date<input type="date" name="date" value="{{ ev.get('date','') }}" required></label>
+      <label>Time<input type="time" name="time" value="{{ ev.get('time','') }}" required></label>
+    </div>
+    <label>Venue<input name="venue" value="{{ ev.get('venue','') }}" required maxlength="200"></label>
+    <label>Description<textarea name="description" rows="5">{{ ev.get('description','') }}</textarea></label>
+    <label>Capacity <small class="muted">(0 = unlimited; counts guests + their +1s)</small>
+      <input type="number" name="capacity" min="0" value="{{ ev.get('capacity', 0) }}">
+    </label>
+    <label>Poster image <small class="muted">(PNG, JPG, GIF, WEBP · max 5 MB)</small>
+      <input type="file" name="poster" id="poster-input" accept="image/*">
+    </label>
+    {% if ev.get('poster') %}
+      <div class="current-poster">
+        <img src="{{ url_for('uploads', filename=ev['poster']) }}" alt="Current poster" id="poster-preview">
+        <label class="check"><input type="checkbox" name="remove_poster" value="1"> Remove current poster</label>
+      </div>
+    {% else %}
+      <img id="poster-preview" class="preview hidden" alt="Poster preview">
+    {% endif %}
+    <div class="actions">
+      <button class="btn" type="submit">{{ 'Create event' if mode == 'new' else 'Save changes' }}</button>
+      <a class="btn ghost" href="{{ url_for('event_detail', eid=ev['id']) if mode == 'edit' else url_for('index') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

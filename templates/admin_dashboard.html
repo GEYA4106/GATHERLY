@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% from "_macros.html" import status_pill %}
+{% block title %}Admin dashboard{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>Admin dashboard</h1>
+  <div class="actions">
+    <a class="btn btn-sm" href="{{ url_for('event_new') }}">+ New event</a>
+    <a class="btn btn-sm ghost" href="{{ url_for('admin_users') }}">Manage users</a>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><b>{{ stats.users }}</b><span>Users</span></div>
+  <div class="stat"><b>{{ stats.events }}</b><span>Events</span></div>
+  <div class="stat"><b>{{ stats.upcoming }}</b><span>Upcoming</span></div>
+  <div class="stat"><b>{{ stats.rsvps }}</b><span>Total RSVPs</span></div>
+  <div class="stat"><b>{{ stats.attended }}</b><span>Checked in</span></div>
+  <div class="stat"><b>{{ stats.rate }}%</b><span>Attendance rate</span></div>
+</div>
+
+<div class="two-col">
+  <div class="card pad">
+    <h3>RSVP breakdown</h3>
+    {% set total = [stats.rsvps, 1]|max %}
+    {% for label, val, cls in [('Going', stats.going, 'going'), ('Maybe', stats.maybe, 'maybe'), ('Not going', stats.not_going, 'not_going')] %}
+      <div class="hbar">
+        <span>{{ label }}</span>
+        <div class="track"><div class="fill {{ cls }}" style="width: {{ (100 * val / total)|round|int }}%"></div></div>
+        <b>{{ val }}</b>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="card pad">
+    <h3>Recent activity</h3>
+    {% if recent %}
+    <ul class="activity">
+      {% for r in recent %}
+        <li><b>{{ r.name }}</b> {{ status_pill(r.status) }} <a href="{{ url_for('event_detail', eid=r.event_id) }}">{{ r.title }}</a>
+            <small class="muted">{{ r.updated_at|fstamp }}</small></li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">No RSVPs yet.</p>{% endif %}
+  </div>
+</div>
+
+<h2>All events</h2>
+{% if events %}
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Event</th><th>When</th><th>Organizer</th><th>Going</th><th>Maybe</th><th>No</th><th>Seats</th><th>Attendance</th><th></th></tr></thead>
+  <tbody>
+  {% for ev in events %}
+    <tr>
+      <td data-label="Event"><a href="{{ url_for('event_detail', eid=ev.id) }}">{{ ev.title }}</a>{% if is_past(ev) %} <span class="pill neutral">Ended</span>{% endif %}</td>
+      <td data-label="When">{{ ev.date|fdate }}, {{ ev.time|ftime }}</td>
+      <td data-label="Organizer">{{ ev.organizer }}</td>
+      <td data-label="Going">{{ ev.going }}</td>
+      <td data-label="Maybe">{{ ev.maybe }}</td>
+      <td data-label="No">{{ ev.not_going }}</td>
+      <td data-label="Seats">{{ ev.seats }}{% if ev.capacity %}/{{ ev.capacity }}{% endif %}</td>
+      <td data-label="Attendance">{{ ev.checked_in }} / {{ ev.going + ev.maybe }}</td>
+      <td class="row-actions">
+        <a class="btn btn-sm" href="{{ url_for('guests', eid=ev.id) }}">Guests</a>
+        <a class="btn btn-sm ghost" href="{{ url_for('event_edit', eid=ev.id) }}">Edit</a>
+        <form method="post" action="{{ url_for('event_delete', eid=ev.id) }}" class="inline" data-confirm="Delete “{{ ev.title }}”? Attendees will be notified.">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn btn-sm danger" type="submit">Delete</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+  <div class="empty"><p>No events yet.</p></div>
+{% endif %}
+{% endblock %}

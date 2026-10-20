@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster, status_pill %}
+{% block title %}{{ ev.title }}{% endblock %}
+{% block content %}
+<div class="detail">
+  <div class="detail-main">
+    {{ poster(ev, 'big') }}
+    <div class="card pad">
+      <div class="title-row">
+        <h1>{{ ev.title }}</h1>
+        {% if is_past(ev) %}<span class="pill neutral">Ended</span>{% endif %}
+      </div>
+      <ul class="facts">
+        <li>📅 <b>{{ ev.date|fdate }}</b> at <b>{{ ev.time|ftime }}</b></li>
+        <li>📍 {{ ev.venue }}</li>
+        <li>👤 Hosted by {{ ev.organizer }}</li>
+        {% if not is_past(ev) %}<li>⏳ <span id="countdown" data-when="{{ when_iso }}">…</span></li>{% endif %}
+      </ul>
+      {% if ev.description %}<h3>About this event</h3><p class="desc">{{ ev.description }}</p>{% endif %}
+    </div>
+  </div>
+
+  <aside class="detail-side">
+    <div class="card pad">
+      <h3>RSVP</h3>
+      <div class="counts big">
+        <div><b>{{ ev.going }}</b><span>Going</span></div>
+        <div><b>{{ ev.maybe }}</b><span>Maybe</span></div>
+        <div><b>{{ ev.not_going }}</b><span>Not going</span></div>
+      </div>
+      {% if ev.capacity %}
+        <div class="meter" title="{{ ev.seats }} of {{ ev.capacity }} seats taken">
+          <div class="bar" style="width: {{ [100, (100 * ev.seats / ev.capacity)|round|int]|min }}%"></div>
+        </div>
+        <p class="muted small">{{ ev.seats }} / {{ ev.capacity }} seats taken{% if spots_left == 0 %} · <b>Full</b>{% else %} · {{ spots_left }} left{% endif %}</p>
+      {% else %}
+        <p class="muted small">{{ ev.seats }} seat(s) confirmed · no capacity limit</p>
+      {% endif %}
+
+      {% if is_past(ev) %}
+        <p class="muted">RSVPs are closed for past events.</p>
+        {% if my %}<p>Your response: {{ status_pill(my.status) }}{% if my.attended %} <span class="pill going">Attended ✓</span>{% endif %}</p>{% endif %}
+      {% elif not me %}
+        <a class="btn block" href="{{ url_for('login', next=request.path) }}">Log in to RSVP</a>
+      {% else %}
+        {% if my %}<p>Your current response: {{ status_pill(my.status) }}{% if my.guests %} <span class="muted">(+{{ my.guests }})</span>{% endif %}</p>{% endif %}
+        <form method="post" action="{{ url_for('rsvp', eid=ev.id) }}" class="rsvp-form">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <label class="small">Bringing extra guests?
+            <select name="guests">
+              {% for n in range(0, MAX_GUESTS + 1) %}<option value="{{ n }}" {{ 'selected' if my and my.guests == n }}>{{ n }}</option>{% endfor %}
+            </select>
+          </label>
+          <div class="rsvp-buttons">
+            <button class="btn going {{ 'on' if my and my.status == 'going' }}" name="status" value="going">✔ Going</button>
+            <button class="btn maybe {{ 'on' if my and my.status == 'maybe' }}" name="status" value="maybe">? Maybe</button>
+            <button class="btn notgoing {{ 'on' if my and my.status == 'not_going' }}" name="status" value="not_going">✖ Not going</button>
+          </div>
+          <p class="muted small">Extra guests only count if you choose “Going”. You'll get a confirmation and a reminder before the event.</p>
+        </form>
+      {% endif %}
+    </div>
+
+    {% if can_manage(ev) %}
+    <div class="card pad">
+      <h3>Manage</h3>
+      <div class="actions col">
+        <a class="btn" href="{{ url_for('guests', eid=ev.id) }}">Guest list &amp; check-in</a>
+        <a class="btn ghost" href="{{ url_for('event_edit', eid=ev.id) }}">Edit event</a>
+        <form method="post" action="{{ url_for('event_delete', eid=ev.id) }}" data-confirm="Delete this event? Attendees will be notified.">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn danger block" type="submit">Delete event</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>Notifications</h1>
+  {% if unread_count %}
+  <form method="post" action="{{ url_for('notifications_read') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <button class="btn ghost btn-sm" type="submit">Mark all read</button>
+  </form>
+  {% endif %}
+</div>
+{% if rows %}
+<ul class="notif-list">
+  {% for n in rows %}
+  <li class="notif {{ '' if n.is_read else 'unread' }}">
+    <span class="kind {{ n.kind }}">{{ {'rsvp_confirmation':'✔ Confirmation','reminder':'⏰ Reminder','event_updated':'✎ Update','event_cancelled':'✖ Cancelled','announcement':'📣 Message','welcome':'👋 Welcome','event_created':'★ Created'}.get(n.kind, 'Notice') }}</span>
+    <p>{{ n.message }}{% if n.event_id %} <a href="{{ url_for('event_detail', eid=n.event_id) }}">View event</a>{% endif %}</p>
+    <small class="muted">{{ n.created_at|fstamp }}</small>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+  <div class="empty"><p>You're all caught up.</p></div>
+{% endif %}
+{% endblock %}

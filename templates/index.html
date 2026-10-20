@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import event_card %}
+{% block title %}Events{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Discover &amp; RSVP to events</h1>
+  <p>Find what's happening, tell the host you're coming, and get reminders so you never miss out.</p>
+  <form class="search" method="get" action="{{ url_for('index') }}">
+    <input type="hidden" name="view" value="{{ view }}">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search by name, venue or keyword…" aria-label="Search events">
+    <button class="btn" type="submit">Search</button>
+  </form>
+</section>
+
+<div class="tabs">
+  <a class="{{ 'active' if view == 'upcoming' }}" href="{{ url_for('index', view='upcoming', q=q) }}">Upcoming</a>
+  <a class="{{ 'active' if view == 'past' }}" href="{{ url_for('index', view='past', q=q) }}">Past</a>
+</div>
+
+{% if events %}
+  <div class="grid">
+    {% for ev in events %}{{ event_card(ev, my_rsvps.get(ev.id)) }}{% endfor %}
+  </div>
+{% else %}
+  <div class="empty">
+    <p>No {{ view }} events{% if q %} matching “{{ q }}”{% endif %}.</p>
+    {% if me %}<a class="btn" href="{{ url_for('event_new') }}">Create the first one</a>{% endif %}
+  </div>
+{% endif %}
+{% endblock %}

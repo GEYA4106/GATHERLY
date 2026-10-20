@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}My profile{% endblock %}
+{% block content %}
+<h1>My profile</h1>
+{% if stats %}
+<div class="stats small">
+  <div class="stat"><b>{{ stats.going }}</b><span>Events I'm going to</span></div>
+  <div class="stat"><b>{{ stats.attended }}</b><span>Events attended</span></div>
+  <div class="stat"><b>{{ stats.created }}</b><span>Events created</span></div>
+</div>
+{% endif %}
+<div class="card pad narrow">
+  <form method="post" novalidate>
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label>Full name<input name="name" value="{{ form['name'] }}" required></label>
+    <label>Email<input type="email" name="email" value="{{ form['email'] }}" required></label>
+    <label>Phone<input type="tel" name="phone" value="{{ form['phone'] or '' }}"></label>
+    <label>About me<textarea name="bio" rows="3" maxlength="500">{{ form['bio'] or '' }}</textarea></label>
+    <fieldset>
+      <legend>Change password <small class="muted">(leave blank to keep current)</small></legend>
+      <div class="two">
+        <label>Current password<input type="password" name="current_password" autocomplete="current-password"></label>
+        <label>New password<input type="password" name="new_password" minlength="6" autocomplete="new-password"></label>
+      </div>
+    </fieldset>
+    <button class="btn" type="submit">Save changes</button>
+  </form>
+</div>
+{% endblock %}

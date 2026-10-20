@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Manage users{% endblock %}
+{% block content %}
+<p class="crumb"><a href="{{ url_for('admin_dashboard') }}">← Dashboard</a></p>
+<div class="toolbar">
+  <h1>Participants &amp; users</h1>
+  <form class="search" method="get">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search name or email" aria-label="Search users">
+    <button class="btn btn-sm" type="submit">Search</button>
+  </form>
+</div>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>RSVPs</th><th>Attended</th><th>Hosted</th><th>Joined</th><th></th></tr></thead>
+  <tbody>
+  {% for u in users %}
+    <tr>
+      <td data-label="Name"><b>{{ u.name }}</b></td>
+      <td data-label="Email">{{ u.email }}</td>
+      <td data-label="Role"><span class="pill {{ 'going' if u.role == 'admin' else 'neutral' }}">{{ u.role }}</span></td>
+      <td data-label="RSVPs">{{ u.rsvp_count }}</td>
+      <td data-label="Attended">{{ u.attended_count }}</td>
+      <td data-label="Hosted">{{ u.event_count }}</td>
+      <td data-label="Joined"><small>{{ u.created_at|fstamp }}</small></td>
+      <td class="row-actions">
+        {% if u.id != me.id %}
+        <form method="post" action="{{ url_for('admin_user_role', uid=u.id) }}" class="inline">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn btn-sm ghost" type="submit">{{ 'Make user' if u.role == 'admin' else 'Make admin' }}</button>
+        </form>
+        <form method="post" action="{{ url_for('admin_user_delete', uid=u.id) }}" class="inline" data-confirm="Delete {{ u.name }} and all their data?">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn btn-sm danger" type="submit">Delete</button>
+        </form>
+        {% else %}<small class="muted">You</small>{% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
